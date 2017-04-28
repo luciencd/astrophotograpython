@@ -106,12 +106,26 @@ class Light(Frame):
         self.frames.append(frame)
         self.width = self.frames[0][0].header["NAXIS1"]
         self.height = self.frames[0][0].header["NAXIS2"]
+        self.starx = self.width/2
+        self.stary = self.height/2
+        self.corrected = False
 
     def getFilter(self):
         return self.filter_
 
     def createMaster(self):
         return np.array(self.frames[0][0].data)
+
+    def trackingStar(self,x,y):
+        self.starx = x
+        self.stary = y
+        self.corrected = True
+
+    def getStarx(self):
+        return self.starx
+
+    def getStary(self):
+        return self.stary
 
 class Bias(Frame):
     def __init__(self,frames):
@@ -290,30 +304,35 @@ class RGBStack(Stack):
 
         i = 0
         for masterredframe_np in masterreds:
-            masteroffsetredframes.append(self.offset(masterredframe_np,offsetred[i][0],offsetred[i][1],self.originalx,self.originaly))
+            print self.redLights[0].getStarx(),self.redLights[0].getStary(),self.redLights[i].getStarx(),self.redLights[i].getStary()
+            masteroffsetredframes.append(self.offset(masterredframe_np,self.redLights[i].getStarx(),self.redLights[i].getStary(),self.redLights[0].getStarx(),self.redLights[0].getStary()))
             i+=1
         i = 0
         for mastergreenframe_np in mastergreens:
-            masteroffsetgreenframes.append(self.offset(mastergreenframe_np,offsetgreen[i][0],offsetgreen[i][1],self.originalx,self.originaly))
+            masteroffsetgreenframes.append(self.offset(mastergreenframe_np,self.greenLights[i].getStarx(),self.greenLights[i].getStary(),self.redLights[0].getStarx(),self.redLights[0].getStary()))
             i+=1
         i = 0
         for masterblueframe_np in masterblues:
-            masteroffsetblueframes.append(self.offset(masterblueframe_np,offsetblue[i][0],offsetblue[i][1],self.originalx,self.originaly))
+            masteroffsetblueframes.append(self.offset(masterblueframe_np,self.blueLights[i].getStarx(),self.blueLights[i].getStary(),self.redLights[0].getStarx(),self.redLights[0].getStary()))
             i+=1
 
 
 
-        masterreds = np.median(masteroffsetredframes,axis=0)
-        mastergreens = np.median(masteroffsetgreenframes,axis=0)
-        masterblues = np.median(masteroffsetblueframes,axis=0)
+        masterreds = np.average(masteroffsetredframes,axis=0)
+        mastergreens = np.average(masteroffsetgreenframes,axis=0)
+        masterblues = np.average(masteroffsetblueframes,axis=0)
+        ##can use median for getting rid of cosmic rays, if you have a lot of light frames.
+
+        
         rmean = np.mean(masterreds)
         gmean = np.mean(mastergreens)
         bmean = np.mean(masterblues)
+        print "rmean:",rmean,"gmean:",gmean,"bmean:",bmean
         map(lambda y: map(lambda x: max(0.0,x),y),masterreds)
         map(lambda y: map(lambda x: max(0.0,x),y),mastergreens)
         map(lambda y: map(lambda x: max(0.0,x),y),masterblues)
 
-        for i in range(len(masterreds)):
+        '''for i in range(len(masterreds)):
             for j in range(len(masterreds[i])):
                 exceed = 5.0
                 if masterreds[i][j] ==0 or mastergreens[i][j] == 0 or masterblues[i][j] ==0:
@@ -324,7 +343,7 @@ class RGBStack(Stack):
                     masterreds[i][j] = rmean#or neighboring pixels average.
                     mastergreens[i][j] = gmean
                     masterblues[i][j] = bmean
-
+        '''
         #masteroffsetredframes = masterreds
         #masteroffsetgreenframes = mastergreens
         #masteroffsetblueframes = masterblues
