@@ -69,6 +69,14 @@ class RGBFile:
             pass
 
         self.save(zipdest,target,redfinalstack_np,greenfinalstack_np,bluefinalstack_np)
+'''
+class MonoFile:
+    def __init__(self,filesource="."):
+        self.filesource
+    def save(self,zipdest,target,finalstack_np):
+        redfilename = zipdest+target+'redfinal.fit'
+'''
+
 ##can be a collection of images, or a single master image.
 ##Can be a bias frame, dark frame flat frame or light frame
 class Filter(Enum):
@@ -323,7 +331,7 @@ class RGBStack(Stack):
         masterblues = np.average(masteroffsetblueframes,axis=0)
         ##can use median for getting rid of cosmic rays, if you have a lot of light frames.
 
-        
+
         rmean = np.mean(masterreds)
         gmean = np.mean(mastergreens)
         bmean = np.mean(masterblues)

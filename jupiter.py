@@ -1,5 +1,5 @@
 from processing import *
-from highprocessing import *
+from offsetter import *
 
 #IMPORTING
 
@@ -20,9 +20,9 @@ greenflats = map(lambda t:fits.open(source+'Flat-'+str(str(t).zfill(3))+'Green.f
 blueflats = map(lambda t:fits.open(source+'Flat-'+str(str(t).zfill(3))+'Blue.fit'),range(1,6))
 
 #LIGHTS
-red_lights = map(lambda t:fits.open(source+'m13-'+str(str(t).zfill(3))+'Red.fit'),range(1,6))
-green_lights = map(lambda t:fits.open(source+'m13-'+str(str(t).zfill(3))+'Green.fit'),range(1,6))
-blue_lights = map(lambda t:fits.open(source+'m13-'+str(str(t).zfill(3))+'Blue.fit'),range(1,6))
+red_lights = map(lambda t:fits.open(source+'jupiter-'+str(str(t).zfill(3))+'Red.fit'),range(1,21))
+green_lights = map(lambda t:fits.open(source+'jupiter-'+str(str(t).zfill(3))+'Green.fit'),range(1,21))
+blue_lights = map(lambda t:fits.open(source+'jupiter-'+str(str(t).zfill(3))+'Blue.fit'),range(1,21))
 
 ##CREATING FRAMES
 ##CREATING BIAS FRAME
@@ -44,9 +44,12 @@ blue_flat_frame = Flat(Filter.BLUE,blueflats)
 originalx = 532
 originaly = 713
 
-offsets = [[[originalx,originaly],  [511,709],[498,707],[482,704],[464,702]],\
-            [[522,711],             [508,709],[493,706],[474,702],[457,700]],\
-            [[522,714],             [503,708],[488,705],[470,703],[448,699]]]
+offsets = [[[originalx,originaly],  [511,709],[498,707]],\
+            [[522,711],             [508,709],[493,706]],\
+            [[522,714],             [503,708],[488,705]]]
+
+offsets = offsetter(20,3,-4.0,0.0,459,315,0.0,0.0)
+print offsets
 
 ##CREATING LIGHT FRAMES
 red_lights_list = []
@@ -63,9 +66,9 @@ for i in range(len(red_lights)):
     blue_lights_list[i].trackingStar(offsets[2][i][0],offsets[2][i][1])
 
 
-red_lights_list = red_lights_list[1:3]
-green_lights_list = green_lights_list[0:3]
-blue_lights_list = blue_lights_list[1:3]
+red_lights_list = red_lights_list[1:2]
+green_lights_list = green_lights_list[1:2]
+blue_lights_list = blue_lights_list[1:2]
 
 print len(red_lights_list)
 ##Remove shitty images.
@@ -83,55 +86,4 @@ stacks = stack_rgb.reduce()
 
 ##EXPORTING RGB IMAGE TO A FILE.
 rgbfile = RGBFile()
-rgbfile.overwrite("results/","m13",stacks[0],stacks[1],stacks[2])
-
-analyzer = Analyzer(stacks[0],stacks[1],stacks[2])
-#analyzer.cutoff(400)
-grapher = Grapher()
-CUTOFF_VALUE = 700
-monostack = analyzer.cutoff(CUTOFF_VALUE,stacks[0],stacks[1],stacks[2])
-
-grapher.plot(0,1,np.array([monostack,monostack,monostack]))
-averagestack = analyzer.averageStack(stacks[0],stacks[1],stacks[2])
-c = analyzer.centroids(averagestack,10,CUTOFF_VALUE)
-grapher.centroids(c)
-
-##Create new "Cluster" object that stores all the centroids and summed FWHM vals in all filters.
-
-
-
-
-plt.figure(105)
-absolutemag = []
-color = []
-for i in range(len(c)):
-                    ## y and x coordinates
-    absolutemag.append(averagestack[c[i][1]][c[i][0]])
-    color.append(stacks[2][c[i][1]][c[i][0]] - averagestack[c[i][1]][c[i][0]])
-    print stacks[2][c[i][1]][c[i][0]],averagestack[c[i][1]][c[i][0]]
-
-plt.scatter(absolutemag,color)
-
-plt.figure(106)
-absolutemag = []
-color = []
-backgroundR = analyzer.backgroundCounts(stacks[0])
-backgroundG = analyzer.backgroundCounts(stacks[1])
-backgroundB = analyzer.backgroundCounts(stacks[2])
-backgroundV = backgroundR+backgroundG+backgroundB
-for i in range(len(c)):
-                    ## y and x coordinates
-    V = analyzer.starFlux("V",c[i][1],c[i][0],10)-backgroundV
-
-    B_V = (analyzer.starFlux("B",c[i][1],c[i][0],10)-backgroundB) - (analyzer.starFlux("V",c[i][1],c[i][0],10)-backgroundV)
-    absolutemag.append(V)
-    color.append(B_V)
-    print V,B_V
-
-plt.scatter(absolutemag,color)
-plt.show()
-
-
-
-## calculating absolute magnitudes:
-#Known Calibration Star
+rgbfile.overwrite("results/","jupiter",stacks[0],stacks[1],stacks[2])

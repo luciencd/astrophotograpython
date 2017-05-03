@@ -48,7 +48,7 @@ offsets = [[[originalx,originaly],  [511,709],[498,707]],\
             [[522,711],             [508,709],[493,706]],\
             [[522,714],             [503,708],[488,705]]]
 
-offsets = offsetter(3,3,-3.0,0.0,532,713)
+offsets = offsetter(3,3,-30.0,-15.5,532,713,+20.0,+15.0)
 
 ##CREATING LIGHT FRAMES
 red_lights_list = []
