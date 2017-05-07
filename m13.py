@@ -1,6 +1,6 @@
 from processing import *
 from highprocessing import *
-
+from astrophysics import *
 #IMPORTING
 
 source = '/Users/luciencd/downloads/PURE_HIRSCH_DATA/'
@@ -88,7 +88,7 @@ rgbfile.overwrite("results/","m13",stacks[0],stacks[1],stacks[2])
 analyzer = Analyzer(stacks[0],stacks[1],stacks[2])
 #analyzer.cutoff(400)
 grapher = Grapher()
-CUTOFF_VALUE = 700
+CUTOFF_VALUE = 500
 monostack = analyzer.cutoff(CUTOFF_VALUE,stacks[0],stacks[1],stacks[2])
 
 grapher.plot(0,1,np.array([monostack,monostack,monostack]))
@@ -98,37 +98,58 @@ grapher.centroids(c)
 
 ##Create new "Cluster" object that stores all the centroids and summed FWHM vals in all filters.
 
+StandardStarGreenCounts = 1.93579*10.0**6
+StandardStarRedCounts = 1.87039*10.0**6
+StandardStarBlueCounts = 1.37602*10.0**6
+StandardStarVcounts = StandardStarGreenCounts+StandardStarRedCounts+StandardStarBlueCounts
+StandardStarVmag = 9.75
+StandardStarBmag = 9.75-0.48
+StandardStarV_B = 0.48
 
-
-
+M13distance = 25100 #light years
+'''
 plt.figure(105)
 absolutemag = []
 color = []
 for i in range(len(c)):
                     ## y and x coordinates
-    absolutemag.append(averagestack[c[i][1]][c[i][0]])
-    color.append(stacks[2][c[i][1]][c[i][0]] - averagestack[c[i][1]][c[i][0]])
-    print stacks[2][c[i][1]][c[i][0]],averagestack[c[i][1]][c[i][0]]
+    absolutemag.append(3*averagestack[c[i][1]][c[i][0]])
+    color.append(stacks[2][c[i][1]][c[i][0]] - 3*averagestack[c[i][1]][c[i][0]])
+    print stacks[2][c[i][1]][c[i][0]],stacks[2][c[i][1]][c[i][0]]-3*averagestack[c[i][1]][c[i][0]]
 
 plt.scatter(absolutemag,color)
-
+'''
+print "Starting main plot."
 plt.figure(106)
-absolutemag = []
-color = []
+Vflux = []
+Bflux = []
 backgroundR = analyzer.backgroundCounts(stacks[0])
 backgroundG = analyzer.backgroundCounts(stacks[1])
 backgroundB = analyzer.backgroundCounts(stacks[2])
 backgroundV = backgroundR+backgroundG+backgroundB
 for i in range(len(c)):
                     ## y and x coordinates
-    V = analyzer.starFlux("V",c[i][1],c[i][0],10)-backgroundV
+    V = analyzer.starFlux("V",c[i][1],c[i][0],7)-backgroundV
 
-    B_V = (analyzer.starFlux("B",c[i][1],c[i][0],10)-backgroundB) - (analyzer.starFlux("V",c[i][1],c[i][0],10)-backgroundV)
-    absolutemag.append(V)
-    color.append(B_V)
-    print V,B_V
+    B = analyzer.starFlux("B",c[i][1],c[i][0],7)-backgroundB
+    V_B = V-B
+    Vflux.append(V)
+    Bflux.append(B)
+    #print stacks[2][c[i][1]][c[i][0]],stacks[2][c[i][1]][c[i][0]]-3*averagestack[c[i][1]][c[i][0]],'->',V,B,V_B,"standard: ",StandardStarVcounts
 
-plt.scatter(absolutemag,color)
+##changing magnitudes
+
+Vmag = map(lambda x: absoluteMag(getMagnitude(x,StandardStarVcounts,StandardStarVmag),25100/3.26),Vflux)
+Bmag = map(lambda x: absoluteMag(getMagnitude(x,StandardStarBlueCounts,StandardStarBmag),25100/3.26),Bflux)
+B_Vmag = zip(Vmag,Bmag)
+B_Vmag = map(lambda x: x[0]-x[1],B_Vmag)
+print Vmag,B_Vmag
+plt.scatter(B_Vmag,Vmag,s=5)
+plt.ylim([7,-2])
+plt.xlim([-0.5,2.0])
+plt.xlabel("B-V color")
+plt.ylabel("V absolute magnitude")
+plt.title("H-R diagram of Globular Cluster M13")
 plt.show()
 
 

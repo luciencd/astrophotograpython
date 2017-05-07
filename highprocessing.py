@@ -48,7 +48,7 @@ class Grapher:
         yes = map(lambda x: x[1],centroids)
         zes = map(lambda x: x[2],centroids)
 
-        plt.scatter(xes,yes)
+        plt.scatter(xes,yes,s=50, facecolors='none', edgecolors='r')
     def finish(self):
         plt.xticks([])
         plt.yticks([])
@@ -163,7 +163,11 @@ class Analyzer:
         for row in range(r-y,r+y):
             for col in range(r-x,r+x):
                 if (col-x)**2 + (row-y)**2 < r:
-                    summation += stack_color_np[row][col]
+                    try:
+                        summation += stack_color_np[row][col]
+                    except IndexError:
+                        pass
+
         return summation
 
 
