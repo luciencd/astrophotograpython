@@ -25,7 +25,7 @@ def export(zipdest,target,data):
     except OSError:
         pass
     print "Removed file."
-    example = "fitses/examplefitsR.fit"
+    example = "../fitses/examplefitsR.fit"
     fixedr = fits.open(example)
     data_next = fits.PrimaryHDU(data)
     fixedRfile = fits.HDUList([data_next])
@@ -34,9 +34,9 @@ def export(zipdest,target,data):
 class RGBFile:
     def __init__(self,filesource="."):
         self.filesource = filesource
-        self.redexample = "fitses/examplefitsR.fit"
-        self.greenexample = "fitses/examplefitsG.fit"
-        self.blueexample = "fitses/examplefitsB.fit"
+        self.redexample = "../fitses/examplefitsR.fit"
+        self.greenexample = "../fitses/examplefitsG.fit"
+        self.blueexample = "../fitses/examplefitsB.fit"
 
     def save(self,zipdest,target,redfinalstack_np,greenfinalstack_np,bluefinalstack_np):
         redfilename = zipdest+target+'redfinal.fit'
