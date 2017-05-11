@@ -1,6 +1,6 @@
-from processing import *
-from highprocessing import *
-from astrophysics import *
+from library.processing import *
+from library.highprocessing import *
+from library.astrophysics import *
 #IMPORTING
 
 source = '/Users/luciencd/downloads/PURE_HIRSCH_DATA/'
