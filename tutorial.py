@@ -112,14 +112,14 @@ bluestack = stack_rgb.stackedBlueFrame #StackedFrame
 
 ##EXPORTING RGB IMAGE TO A FILE.
 rgbfile = RGBFile()  #folderpath, filename,StackedFrame,StackedFrame,StackedFrame
-rgbfile.overwrite("results/example/","m13example",redstack.createMaster(),greenstack.createMaster(),bluestack.createMaster())
+rgbfile.overwrite("results/example/m13/","m13example",redstack.createMaster(),greenstack.createMaster(),bluestack.createMaster())
 
 ##EXPORTING ALL BIAS, DARK, and FLAT frames for further analysis.
-export("results/example/","bias",masterbias_np)
-export("results/example/","dark",masterdark_np)
-export("results/example/","flatred",masterflatred_np)
-export("results/example/","flatgreen",masterflatgreen_np)
-export("results/example/","flatblue",masterflatblue_np)
+export("results/example/m13/","bias",masterbias_np)
+export("results/example/m13/","dark",masterdark_np)
+export("results/example/m13/","flatred",masterflatred_np)
+export("results/example/m13/","flatgreen",masterflatgreen_np)
+export("results/example/m13/","flatblue",masterflatblue_np)
 
 ##Could do further image comparison if you want to.
 

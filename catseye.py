@@ -1,6 +1,5 @@
-from processing import *
-from offsetter import *
-
+from library.processing import *
+from library.offsetter import *
 #IMPORTING
 
 source = '/Users/luciencd/downloads/PURE_HIRSCH_DATA/'
@@ -116,4 +115,4 @@ bluestack = stack_rgb.stackedBlueFrame #StackedFrame
 
 ##EXPORTING RGB IMAGE TO A FILE.
 rgbfile = RGBFile()  #folderpath, filename,StackedFrame,StackedFrame,StackedFrame
-rgbfile.overwrite("results/example/catseye","catseyenebula",redstack.createMaster(),greenstack.createMaster(),bluestack.createMaster())
+rgbfile.overwrite("results/example/catseye/","catseyenebula",redstack.createMaster(),greenstack.createMaster(),bluestack.createMaster())
