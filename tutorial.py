@@ -67,92 +67,43 @@ red_lights_list = red_lights_list[1:3]
 green_lights_list = green_lights_list[0:3]
 blue_lights_list = blue_lights_list[1:3]
 
-print len(red_lights_list)
-##Remove shitty images.
 
 
 ##Use machine learning to use the time delta, filter => x, y to interpolate using regression over the non-corrected ones.
-
-
 
 ##CREATING A STACK OF FRAMES
 stack_rgb = RGBStack(bias_frame,dark_frame,red_flat_frame,green_flat_frame,blue_flat_frame,red_lights_list,green_lights_list,blue_lights_list)
 
 ##CALLING REDUCE FUNCTION ON THE FRAMES in a stack
-stacks = stack_rgb.reduce()
+stack_rgb.reduceAutomatic()
+
+##CALCULATE OFFSET AND REASSIGN star position on all the reducedFrames.
+reducedReds = stack_rgb.reducedReds
+reducedGreens = stack_rgb.reducedGreens
+reducedBlues = stack_rgb.reducedBlues
+
+##CALLING STACK FUNCTION ON THE FRAMES in a stack
+stack_rgb.stackAutomatic()
+
+##EXTRACTING ALL THE np arrays and FRAMES
+masterbias_np = stack_rgb.masterbias_np #master nparray
+masterdark_np = stack_rgb.masterdark_np #master nparray
+
+masterflatred_np = stack_rgb.masterflatred_np #master nparray
+masterflatgreen_np = stack_rgb.masterflatgreen_np #master nparray
+masterflatblue_np = stack_rgb.masterflatblue_np #master nparray
+
+redstack = stack_rgb.stackedRedFrame #StackedFrame
+greenstack = stack_rgb.stackedGreenFrame #StackedFrame
+bluestack = stack_rgb.stackedBlueFrame #StackedFrame
+
 
 ##EXPORTING RGB IMAGE TO A FILE.
-rgbfile = RGBFile()
-rgbfile.overwrite("results/","m13",stacks[0],stacks[1],stacks[2])
+rgbfile = RGBFile()  #folderpath, filename,StackedFrame,StackedFrame,StackedFrame
+rgbfile.overwrite("results/example/","m13example",redstack,greenstack,bluestack)
 
-analyzer = Analyzer(stacks[0],stacks[1],stacks[2])
-#analyzer.cutoff(400)
-grapher = Grapher()
-CUTOFF_VALUE = 500
-monostack = analyzer.cutoff(CUTOFF_VALUE,stacks[0],stacks[1],stacks[2])
-
-grapher.plot(0,1,np.array([monostack,monostack,monostack]))
-averagestack = analyzer.averageStack(stacks[0],stacks[1],stacks[2])
-c = analyzer.centroids(averagestack,10,CUTOFF_VALUE)
-grapher.centroids(c)
-
-##Create new "Cluster" object that stores all the centroids and summed FWHM vals in all filters.
-
-StandardStarGreenCounts = 1.93579*10.0**6
-StandardStarRedCounts = 1.87039*10.0**6
-StandardStarBlueCounts = 1.37602*10.0**6
-StandardStarVcounts = StandardStarGreenCounts+StandardStarRedCounts+StandardStarBlueCounts
-StandardStarVmag = 9.75
-StandardStarBmag = 9.75-0.48
-StandardStarV_B = 0.48
-
-M13distance = 25100 #light years
-'''
-plt.figure(105)
-absolutemag = []
-color = []
-for i in range(len(c)):
-                    ## y and x coordinates
-    absolutemag.append(3*averagestack[c[i][1]][c[i][0]])
-    color.append(stacks[2][c[i][1]][c[i][0]] - 3*averagestack[c[i][1]][c[i][0]])
-    print stacks[2][c[i][1]][c[i][0]],stacks[2][c[i][1]][c[i][0]]-3*averagestack[c[i][1]][c[i][0]]
-
-plt.scatter(absolutemag,color)
-'''
-print "Starting main plot."
-plt.figure(106)
-Vflux = []
-Bflux = []
-backgroundR = analyzer.backgroundCounts(stacks[0])
-backgroundG = analyzer.backgroundCounts(stacks[1])
-backgroundB = analyzer.backgroundCounts(stacks[2])
-backgroundV = backgroundR+backgroundG+backgroundB
-for i in range(len(c)):
-                    ## y and x coordinates
-    V = analyzer.starFlux("V",c[i][1],c[i][0],7)-backgroundV
-
-    B = analyzer.starFlux("B",c[i][1],c[i][0],7)-backgroundB
-    V_B = V-B
-    Vflux.append(V)
-    Bflux.append(B)
-    #print stacks[2][c[i][1]][c[i][0]],stacks[2][c[i][1]][c[i][0]]-3*averagestack[c[i][1]][c[i][0]],'->',V,B,V_B,"standard: ",StandardStarVcounts
-
-##changing magnitudes
-
-Vmag = map(lambda x: absoluteMag(getMagnitude(x,StandardStarVcounts,StandardStarVmag),25100/3.26),Vflux)
-Bmag = map(lambda x: absoluteMag(getMagnitude(x,StandardStarBlueCounts,StandardStarBmag),25100/3.26),Bflux)
-B_Vmag = zip(Vmag,Bmag)
-B_Vmag = map(lambda x: x[0]-x[1],B_Vmag)
-print Vmag,B_Vmag
-plt.scatter(B_Vmag,Vmag,s=5)
-plt.ylim([7,-2])
-plt.xlim([-0.5,2.0])
-plt.xlabel("B-V color")
-plt.ylabel("V absolute magnitude")
-plt.title("H-R diagram of Globular Cluster M13")
-plt.show()
-
-
-
-## calculating absolute magnitudes:
-#Known Calibration Star
+export("results/example/","bias",masterbias_np)
+export("results/example/","dark",masterdark_np)
+export("results/example/","flatred",masterflatred_np)
+export("results/example/","flatgreen",masterflatgreen_np)
+export("results/example/","flatblue",masterflatblue_np)
