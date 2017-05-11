@@ -72,7 +72,7 @@ blue_lights_list = blue_lights_list[1:3]
 ##Use machine learning to use the time delta, filter => x, y to interpolate using regression over the non-corrected ones.
 
 ##CREATING A STACK OF FRAMES
-stack_rgb = RGBStack(bias_frame,dark_frame,red_flat_frame,green_flat_frame,blue_flat_frame,red_lights_list,green_lights_list,blue_lights_list)
+stack_rgb = RGBStacker(bias_frame,dark_frame,red_flat_frame,green_flat_frame,blue_flat_frame,red_lights_list,green_lights_list,blue_lights_list)
 
 ##CALLING REDUCE FUNCTION ON THE FRAMES in a stack
 stack_rgb.reduceAutomatic()
@@ -100,7 +100,7 @@ bluestack = stack_rgb.stackedBlueFrame #StackedFrame
 
 ##EXPORTING RGB IMAGE TO A FILE.
 rgbfile = RGBFile()  #folderpath, filename,StackedFrame,StackedFrame,StackedFrame
-rgbfile.overwrite("results/example/","m13example",redstack,greenstack,bluestack)
+rgbfile.overwrite("results/example/","m13example",redstack.createMaster(),greenstack.createMaster(),bluestack.createMaster())
 
 export("results/example/","bias",masterbias_np)
 export("results/example/","dark",masterdark_np)

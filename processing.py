@@ -17,13 +17,14 @@ def binArray(data, axis, binstep, binsize, func=np.nanmean):
     data = np.array(data).transpose(argdims)
     return data
 
-def export(data,zipdest,target):
+def export(zipdest,target,data):
     ##TODO: remove file directory dependency
+
     try:
-        os.remove(zipdest+target+'.fit')
+        os.remove(zipdest+target+".fit")
     except OSError:
         pass
-
+    print "Removed file."
     example = "fitses/examplefitsR.fit"
     fixedr = fits.open(example)
     data_next = fits.PrimaryHDU(data)
@@ -218,7 +219,7 @@ class Flat(Frame):
 class ReducedFrame(Frame):#reducedframe self input is a light frame.
     def __init__(self,reduced_np,lightframe):
         Frame.__init__(self)
-        self.frame = lightframe
+        self.lightframe = lightframe
         self.reduced_np = reduced_np
 
     def getFilter(self):
@@ -228,18 +229,18 @@ class ReducedFrame(Frame):#reducedframe self input is a light frame.
         return self.reduced_np
 
     def trackingStar(self,x,y):
-        lightframe.trackingStar(x,y)
+        self.lightframe.trackingStar(x,y)
 
     def getStarx(self):
-        lightframe.getStarx()
+        return self.lightframe.getStarx()
 
     def getStary(self):
-        lightframe.getStary()
+        return self.lightframe.getStary()
 
 class StackedFrame(Frame):#reducedframe self input is a light frame.
     def __init__(self,reduced_np,lightframe):
         Frame.__init__(self)
-        self.frame = lightframe
+        self.lightframe = lightframe
         self.reduced_np = reduced_np
 
     def getFilter(self):
@@ -249,13 +250,13 @@ class StackedFrame(Frame):#reducedframe self input is a light frame.
         return self.reduced_np
 
     def trackingStar(self,x,y):
-        lightframe.trackingStar(x,y)
+        self.lightframe.trackingStar(x,y)
 
     def getStarx(self):
-        lightframe.getStarx()
+        return self.lightframe.getStarx()
 
     def getStary(self):
-        lightframe.getStary()
+        return self.lightframe.getStary()
 
 class Stacker:
     def __init__(self,masterbias,masterdark):
@@ -263,9 +264,9 @@ class Stacker:
         self.masterdark = masterdark##single frame
 
 
-class RGBStacker(Stack):
+class RGBStacker(Stacker):
     def __init__(self,masterbias,masterdark,masterflatred,masterflatgreen,masterflatblue,redLights,greenLights,blueLights):
-        Stack.__init__(self,masterbias,masterdark)
+        Stacker.__init__(self,masterbias,masterdark)
         self.masterflatred = masterflatred
         self.masterflatgreen = masterflatgreen
         self.masterflatblue = masterflatblue
@@ -292,21 +293,21 @@ class RGBStacker(Stack):
         self.masterbias_np = self.masterbias.createMaster()
         ##Dark substraction
         #masterdark_np = self.masterdark.createMaster(masterbias_np)
-        self.masterdark_np = self.masterdark.createMaster(masterbias_np,self.masterdark.getExposure()/self.redLights[0].getExposure())##GENERIC DARK FRAME!!! because of binning, impossible to combine the two
+        self.masterdark_np = self.masterdark.createMaster(self.masterbias_np,self.masterdark.getExposure()/self.redLights[0].getExposure())##GENERIC DARK FRAME!!! because of binning, impossible to combine the two
 
         #export(masterdark_np,"results/","masterdark")
         ##Flat Division #red is 5 seconds, dark is 30 seconds.
 
-        self.masterflatred_np = self.masterflatred.createMaster(masterbias_np,np.multiply(masterdark_np,self.masterflatred.getExposure()/self.masterdark.getExposure()))
+        self.masterflatred_np = self.masterflatred.createMaster(self.masterbias_np,np.multiply(self.masterdark_np,self.masterflatred.getExposure()/self.masterdark.getExposure()))
         #print "dark red differences:",np.multiply(masterdark_np,self.masterflatred.getExposure()/self.masterdark.getExposure())
-        self.masterflatgreen_np = self.masterflatgreen.createMaster(masterbias_np,np.multiply(masterdark_np,self.masterflatgreen.getExposure()/self.masterdark.getExposure()))
+        self.masterflatgreen_np = self.masterflatgreen.createMaster(self.masterbias_np,np.multiply(self.masterdark_np,self.masterflatgreen.getExposure()/self.masterdark.getExposure()))
         #print "dark green differences:",np.multiply(masterdark_np,self.masterflatgreen.getExposure()/self.masterdark.getExposure())
-        self.masterflatblue_np = self.masterflatblue.createMaster(masterbias_np,np.multiply(masterdark_np,self.masterflatblue.getExposure()/self.masterdark.getExposure()))
+        self.masterflatblue_np = self.masterflatblue.createMaster(self.masterbias_np,np.multiply(self.masterdark_np,self.masterflatblue.getExposure()/self.masterdark.getExposure()))
 
     ##takes in bias, dark and flat Numpy arrays, and single light(Frame) object, and returns ReducedFrame(Frame)
     def reduceFrame(self,masterbias_np,masterdark_np,masterflat_np,lightframe):
-        masterlight_np = redlightframe.createMaster()##gets the one frame
-        #print "before bias removal",master_redlight_np
+        masterlight_np = lightframe.createMaster()##gets the one frame
+        #print "before bias removal",masterlight_np,masterbias_np
         masterlight_np = np.subtract(masterlight_np,masterbias_np)
         #print "after bias removal",master_redlight_np
         masterlight_np = np.subtract(masterlight_np,masterdark_np)
@@ -319,7 +320,7 @@ class RGBStacker(Stack):
     def reduceAllFrames(self,masterbias_np,masterdark_np,masterflat_np,lightframes):
         ##TODO:ensure the exposure time is equal where it matters.
         ##TODO:ensure the filters line up.
-        return map(lambda f: reduceFrame(masterbias_np,masterdark_np,masterflat_np,f),lightframes)
+        return map(lambda f: self.reduceFrame(masterbias_np,masterdark_np,masterflat_np,f),lightframes)
 
     def reduce(self,masterbias_np,masterdark_np,masterflatred_np,masterflatgreen_np,masterflatblue_np,redLights,greenLights,blueLights):
 
@@ -377,7 +378,8 @@ class RGBStacker(Stack):
             masteroffset_list.append(self.offset(masterframe_np,masterframe.getStarx(),masterframe.getStary(),originalframe.getStarx(),originalframe.getStary()))
 
         masteroffset_np = np.average(masteroffset_list,axis=0)
-        return map(lambda y: map(lambda x: max(0.0,x),y),masteroffset_np)
+        return StackedFrame(map(lambda y: map(lambda x: max(0.0,x),y),masteroffset_np),reduced_lights[0])
+
 
 
     def stack(self,reduced_light_reds,reduced_light_greens,reduced_light_blues):
@@ -428,12 +430,15 @@ class RGBStacker(Stack):
         self.generateMasters()
 
         ##reduce red light frames
-        self.reducedReds = self.reduceAllFrames(self.masterbias,self.masterdark,self.masterflatred,self.redLights)
+        self.reducedReds = self.reduceAllFrames(self.masterbias_np,self.masterdark_np,self.masterflatred_np,self.redLights)
+        print self.reducedReds
+        print self.reducedReds[0].lightframe
+        print self.reducedReds[0].lightframe.getStarx(),self.reducedReds[0].getStarx()
         ##reduce green light frames
-        self.reducedGreens = self.reduceAllFrames(self.masterbias,self.masterdark,self.masterflatgreen,self.greenLights)
+        self.reducedGreens = self.reduceAllFrames(self.masterbias_np,self.masterdark_np,self.masterflatgreen_np,self.greenLights)
         ##reduce blue light frames
-        self.reducedBlues = self.reduceAllFrames(self.masterbias,self.masterdark,self.masterflatblue,self.blueLights)
-        
+        self.reducedBlues = self.reduceAllFrames(self.masterbias_np,self.masterdark_np,self.masterflatblue_np,self.blueLights)
+
     def stackAutomatic(self):
 
         ##stack red light frames
@@ -441,7 +446,7 @@ class RGBStacker(Stack):
         ##stack green light frames
         self.stackedGreenFrame = self.stackColor(self.reducedGreens)
         ##stack blue light frames
-        self.stackedGreenFrame = self.stackColor(self.reducedBlues)
+        self.stackedBlueFrame = self.stackColor(self.reducedBlues)
 
 
 
