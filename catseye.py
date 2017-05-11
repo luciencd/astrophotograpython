@@ -1,6 +1,5 @@
-from processing import *
-from offsetter import *
-
+from library.processing import *
+from library.offsetter import *
 #IMPORTING
 
 source = '/Users/luciencd/downloads/PURE_HIRSCH_DATA/'
@@ -79,11 +78,41 @@ print len(red_lights_list)
 
 
 ##CREATING A STACK OF FRAMES
-stack_rgb = RGBStack(bias_frame,dark_frame,red_flat_frame,green_flat_frame,blue_flat_frame,red_lights_list,green_lights_list,blue_lights_list,offsets,originalx,originaly)
+stack_rgb = RGBStacker(bias_frame,dark_frame,red_flat_frame,green_flat_frame,blue_flat_frame,red_lights_list,green_lights_list,blue_lights_list)
 
 ##CALLING REDUCE FUNCTION ON THE FRAMES in a stack
-stacks = stack_rgb.reduce()
+stack_rgb.reduceAutomatic()
+
+##CALCULATE OFFSET AND REASSIGN star position on all the reducedFrames.
+
+##TODO: Use machine learning to use the time delta, filter => x, y to interpolate using regression over the non-corrected ones.
+##TODO: Calculate the center of mass of center quarter of image, and use that as standard star.
+##TODO: do star centroid analysis, id them, then rank them by counts, and pair up the most remote count values to track it.
+##Assuming that after reduction, all frames are the same length, and approximately have the same number of counts.
+
+reducedReds = stack_rgb.reducedReds
+reducedGreens = stack_rgb.reducedGreens
+reducedBlues = stack_rgb.reducedBlues
+
+##TODO: could remove shitty frames here.
+
+
+##CALLING STACK FUNCTION ON THE FRAMES in a stack
+stack_rgb.stackAutomatic()
+
+##EXTRACTING ALL THE np arrays and FRAMES
+masterbias_np = stack_rgb.masterbias_np #master nparray
+masterdark_np = stack_rgb.masterdark_np #master nparray
+
+masterflatred_np = stack_rgb.masterflatred_np #master nparray
+masterflatgreen_np = stack_rgb.masterflatgreen_np #master nparray
+masterflatblue_np = stack_rgb.masterflatblue_np #master nparray
+
+redstack = stack_rgb.stackedRedFrame #StackedFrame
+greenstack = stack_rgb.stackedGreenFrame #StackedFrame
+bluestack = stack_rgb.stackedBlueFrame #StackedFrame
+
 
 ##EXPORTING RGB IMAGE TO A FILE.
-rgbfile = RGBFile()
-rgbfile.overwrite("results/","catseye",stacks[0],stacks[1],stacks[2])
+rgbfile = RGBFile()  #folderpath, filename,StackedFrame,StackedFrame,StackedFrame
+rgbfile.overwrite("results/example/catseye/","catseyenebula",redstack.createMaster(),greenstack.createMaster(),bluestack.createMaster())
