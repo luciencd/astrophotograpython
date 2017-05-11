@@ -273,6 +273,8 @@ class RGBStacker(Stacker):
         self.redLights = redLights
         self.greenLights = greenLights
         self.blueLights = blueLights
+        self.starx = redLights[0].getStarx()
+        self.stary = redLights[0].getStary()
 
     def offset(self,frame,x1,y1,x2,y2):
         offsetframe = copy.deepcopy(frame)
@@ -375,9 +377,10 @@ class RGBStacker(Stacker):
             masterframe = reduced_lights[i]
             originalframe = reduced_lights[0]
             masterframe_np = masterframe.createMaster()
-            masteroffset_list.append(self.offset(masterframe_np,masterframe.getStarx(),masterframe.getStary(),originalframe.getStarx(),originalframe.getStary()))
+            masteroffset_list.append(self.offset(masterframe_np,masterframe.getStarx(),masterframe.getStary(),self.starx,self.stary))
 
-        masteroffset_np = np.average(masteroffset_list,axis=0)
+        ##can change funtion from average to median
+        masteroffset_np = np.median(masteroffset_list,axis=0)
         return StackedFrame(map(lambda y: map(lambda x: max(0.0,x),y),masteroffset_np),reduced_lights[0])
 
 
